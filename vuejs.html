@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <title>Vuejs example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+
+    <div class="container-fluid">
+        <div id="app">
+            <div>
+                <h1>vuejs example</h1>
+                <hr/>
+                <button @click="fetch" class="btn btn-primary">Fetch users</button>
+                <select v-model="selectedGender">
+                    <option :value="null"></option>
+                    <option value="male">H</option>
+                    <option value="female">F</option>
+                </select>
+                <input type="text" v-model="textFilter">
+                <span>{{filteredUsers.length}} / {{users.length}}</span>
+            </div>
+            <table class="table table-hover" v-if="filteredUsers.length">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Tel</th>
+                    <th>Genre</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td><img width="48px" :src="newUser.picture.thumbnail"></td>
+                    <td><input type="text" v-model="newUser.name.first"> <input type="text" v-model="newUser.name.last"></td>
+                    <td><input type="email" v-model="newUser.email"></td>
+                    <td><input type="text" v-model="newUser.phone"></td>
+                    <td><input type="radio" id="male" value="male" v-model="newUser.gender">
+                        <label for="male"><i class="fa fa-male"></i></label>
+                        <input type="radio" id="female" value="female" v-model="newUser.gender">
+                        <label for="female"><i class="fa fa-female"></i></label>
+                    <td>
+                        <button class="btn btn-success" @click="add"><i class="fa fa-plus"></i></button>
+                    </td>
+                </tr>
+                <tr v-for="user in filteredUsers">
+                    <td><img width="48px" :src="user.picture.thumbnail"></td>
+                    <td>{{user.name.first}} {{user.name.last}}</td>
+                    <td>{{user.email}}</td>
+                    <td>{{user.phone}}</td>
+                    <td><i class="fa" :class="user.gender === 'male' ? 'fa-male' : 'fa-female'"></i></td>
+                    <td>
+                        <button class="btn btn-danger" @click="remove(user)"><i class="fa fa-remove"></i></button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p v-else>
+                Aucun utilisateur.
+            </p>
+
+
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.js"></script>
+
+
+    <script>
+    const emptyNewUser =  () => ({
+        picture: {
+            thumbnail: 'http://www.bankstone.co.uk/wp-content/uploads/2016/11/photo.jpg'
+        },
+        name: {
+            first: '',
+            last: '',
+        },
+        email: '',
+        phone: '',
+    });
+
+    new Vue({
+        el: '#app',
+        data: {
+            users: [],
+            selectedGender: null,
+            textFilter: '',
+            newUser: emptyNewUser(),
+        },
+        methods: {
+            fetch() {
+                axios('https://randomuser.me/api/?results=20')
+                    .then(({ data: { results } }) => this.users = results);
+            },
+            remove(user) {
+                this.users.splice(this.users.indexOf(user), 1);
+            },
+            add() {
+                this.users = [this.newUser, ...this.users];
+                this.newUser = emptyNewUser();
+            }
+        },
+        computed: {
+            filteredUsers() {
+                return this.users.filter(user => {
+                    return (this.selectedGender ? user.gender === this.selectedGender : true)
+                        && this.textFilter.split(' ').every(word => {
+                            const regexp = new RegExp(word, 'ig');
+                            return (
+                                user.name.first.match(regexp) ||
+                                user.name.last.match(regexp) ||
+                                user.email.match(regexp)
+                            );
+                        });
+                });
+            }
+        }
+    });
+
+    </script>
+
+
+</body>
+</html>
